@@ -1,0 +1,27 @@
+{
+  "name": "splitter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm test",
+    "lint": "npm run lint:js && npm run lint:sol",
+    "lint:sol": "solhint contracts/*.sol contracts/**/*.sol"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/micahu/splitter.git"
+  },
+  "author": "Micah Uhrlass",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/micahu/splitter/issues"
+  },
+  "homepage": "https://github.com/micahu/splitter#readme",
+  "dependencies": {
+    "solhint": "^1.2.1"
+  }
+}

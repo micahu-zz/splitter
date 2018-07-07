@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24; // solhint-disable-line
 
+
 /// @title Safe Math library
 /// @dev Math operations with safety checks that throw on error
 /// @dev https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol
@@ -36,6 +37,7 @@ library SafeMath {
     }
 }
 
+
 /// @title Splitter Smart Contract
 /// @author Micah Uhrlass
 /// @notice Splits requested ether among target accounts
@@ -54,9 +56,9 @@ contract Splitter {
         bool isOwner;
     }
 
-    address Alice;
-    address Bob;
-    address Carol;
+    address public alice;
+    address public bob;
+    address public carol;
 
     /// MODIFIERS
     modifier onlyOwner() {
@@ -81,19 +83,13 @@ contract Splitter {
         require(_alice != _carol, "addresses must be distinct");
         network[msg.sender].isOwner = true;
         network[_alice].isSender = true;
-        Alice = _alice;
-        Bob = _bob;
-        Carol = _carol;
+        alice = _alice;
+        bob = _bob;
+        carol = _carol;
     }
 
     /// FUNCTIONS
-    function isEvenNumber(uint256 value) private pure returns (bool){
-        uint256 half = value.div(2); // discards any remainder
-        if (value == half.mul(2)) return true;
-        return false;
-    }
-
-    function AlterNetworkMember(address _member, bool _isSender) public onlyOwner returns (bool){
+    function alterNetworkMember(address _member, bool _isSender) public onlyOwner returns (bool) {
         require(msg.sender != _member, "owner may not alter self");
         NetworkMember storage newMember = network[_member];
         newMember.isSender = _isSender;
@@ -101,14 +97,20 @@ contract Splitter {
         return true;
     }
 
-    function Deposit(uint256 amount) public payable onlySender returns (bool) {
+    function deposit(uint256 amount) public payable onlySender returns (bool) {
         require(isEvenNumber(amount), "value in wei must be divisible by 2");
         uint256 half = amount.div(2);
-        Bob.transfer(half);
-        Carol.transfer(half);
-        emit Transfer(msg.sender, Bob, half);
-        emit Transfer(msg.sender, Carol, half);
+        bob.transfer(half);
+        carol.transfer(half);
+        emit Transfer(msg.sender, bob, half);
+        emit Transfer(msg.sender, carol, half);
         return true;
+    }
+
+    function isEvenNumber(uint256 value) private pure returns (bool) {
+        uint256 half = value.div(2); // discards any remainder
+        if (value == half.mul(2)) return true;
+        return false;
     }
     
 }
