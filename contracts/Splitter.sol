@@ -1,22 +1,5 @@
 pragma solidity ^0.4.24; // solhint-disable-line
 
-/// @title ERC-20 Token Standard
-/// @author Fabian Vogelsteller <fabian@ethereum.org>, Vitalik Buterin <vitalik.buterin@ethereum.org>
-/// @dev https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
-interface ERC20Interface {
-    function decimals() public constant returns (uint8);
-    function totalSupply() public constant returns (uint);
-    function balanceOf(address tokenOwner) public constant returns (uint balance);
-    function allowance(address tokenOwner, address spender) public constant returns (uint remaining);
-    function transfer(address to, uint tokens) public returns (bool success);
-    function approve(address spender, uint tokens) public returns (bool success);
-    function transferFrom(address from, address to, uint tokens) public returns (bool success);
-
-    event Transfer(address indexed from, address indexed to, uint tokens);   // solhint-disable-line
-    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
-}
-
-
 /// @title Safe Math library
 /// @dev Math operations with safety checks that throw on error
 /// @dev https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol
@@ -56,12 +39,8 @@ library SafeMath {
 /// @title Splitter Smart Contract
 /// @author Micah Uhrlass
 /// @notice Splits requested ether among target accounts
-/// @dev Pausable: Gives ability for Owner to pull emergency stop to prevent actions on the network
-/// @dev TokenDestructible: Gives owner ability to kill the contract and extract funds to a new contract
 contract Splitter {
     using SafeMath for uint256;
-
-    /// TODO: Consider - to hard-code A/B/C accounts or allow adding new accounts to network? (in case A/B/C have issues with their wallet)
 
     /// STORAGE MAPPINGS
     /// @title List of network members
@@ -72,45 +51,64 @@ contract Splitter {
     /// TYPES
     struct NetworkMember {
         bool isSender;
-        bool isReceiver;
-        int256 allowance;
+        bool isOwner;
     }
 
+    address Alice;
+    address Bob;
+    address Carol;
+
     /// MODIFIERS
+    modifier onlyOwner() {
+        require(network[msg.sender].isOwner, "must be the contract owner");
+        _;
+    }
+
     modifier onlySender() {
         require(network[msg.sender].isSender, "must be a sender");
         _;
     }
-
-    modifier onlyReceiver() {
-        require(network[msg.sender].isReceiver, "must be a receiver");
-        _;
-    }
-
-    constructor() public {} /// TODO: needed?
-
+    
     /// EVENTS
-    event DepositMade(
-        address indexed _sender,
-        uint256 _amount
-    );
+    event Transfer(address indexed from, address indexed to, uint tokens);
 
-    event WithdrawalMade(
-        address indexed _sender,
-        uint256 _amount
-    );
+    event MemberAltered(address indexed member, bool isSender);
+
+    /// CONSTRUCTOR
+    constructor(address _alice, address _bob, address _carol) public payable {
+        require(_alice != _bob, "addresses must be distinct");
+        require(_bob != _carol, "addresses must be distinct");
+        require(_alice != _carol, "addresses must be distinct");
+        network[msg.sender].isOwner = true;
+        network[_alice].isSender = true;
+        Alice = _alice;
+        Bob = _bob;
+        Carol = _carol;
+    }
 
     /// FUNCTIONS
-    function Deposit(uint256 amount) public onlySender {
-        /// Deposit ETH to wallet
-        /// Approve 2 accounts for ETH withdrawal from wallet
-        /// emit event
+    function isEvenNumber(uint256 value) private pure returns (bool){
+        uint256 half = value.div(2); // discards any remainder
+        if (value == half.mul(2)) return true;
+        return false;
     }
 
-    function Withdraw() public onlyReceiver {
-        /// address receiverWallet = 
-        /// require() - allowance
-        /// Empty wallet to account
-        /// emit event
+    function AlterNetworkMember(address _member, bool _isSender) public onlyOwner returns (bool){
+        require(msg.sender != _member, "owner may not alter self");
+        NetworkMember storage newMember = network[_member];
+        newMember.isSender = _isSender;
+        emit MemberAltered(_member, _isSender);
+        return true;
     }
+
+    function Deposit(uint256 amount) public payable onlySender returns (bool) {
+        require(isEvenNumber(amount), "value in wei must be divisible by 2");
+        uint256 half = amount.div(2);
+        Bob.transfer(half);
+        Carol.transfer(half);
+        emit Transfer(msg.sender, Bob, half);
+        emit Transfer(msg.sender, Carol, half);
+        return true;
+    }
+    
 }
