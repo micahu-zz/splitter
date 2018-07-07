@@ -1,41 +1,6 @@
 pragma solidity ^0.4.24; // solhint-disable-line
 
-
-/// @title Safe Math library
-/// @dev Math operations with safety checks that throw on error
-/// @dev https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol
-library SafeMath {
-    /// @dev Multiplies two numbers, throws on overflow.
-    function mul(uint256 a, uint256 b) internal pure returns (uint256 c) {
-        if (a == 0) {
-            return 0;
-        }
-        c = a * b;
-        assert(c / a == b);
-        return c;
-    }
-
-    /// @dev Integer division of two numbers, truncating the quotient.
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        // assert(b > 0); // Solidity automatically throws when dividing by 0
-        // uint256 c = a / b;
-        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
-        return a / b;
-    }
-
-    /// @dev Subtracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        assert(b <= a);
-        return a - b;
-    }
-
-    /// @dev Adds two numbers, throws on overflow.
-    function add(uint256 a, uint256 b) internal pure returns (uint256 c) {
-        c = a + b;
-        assert(c >= a);
-        return c;
-    }
-}
+import "./SafeMath.sol";
 
 
 /// @title Splitter Smart Contract
@@ -78,9 +43,8 @@ contract Splitter {
 
     /// CONSTRUCTOR
     constructor(address _alice, address _bob, address _carol) public payable {
-        require(_alice != _bob, "addresses must be distinct");
-        require(_bob != _carol, "addresses must be distinct");
-        require(_alice != _carol, "addresses must be distinct");
+        require(_alice != address(0) && _bob != address(0) && _carol != address(0), "address must not equal 0");
+        require(_alice != _bob && _bob != _carol && _alice != _carol, "addresses must be distinct");
         network[msg.sender].isOwner = true;
         network[_alice].isSender = true;
         alice = _alice;
