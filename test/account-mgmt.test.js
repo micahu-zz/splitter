@@ -22,12 +22,20 @@ contract('Account Management', accounts => {
 
       const ethAmount = Web3Utils.fromWei(weiAmount.toString(),'ether')
       let bob = await ctx.contracts.splitter.network(ctx.actors.bob)
+      let carol = await ctx.contracts.splitter.network(ctx.actors.carol)
+
       const bobBefore = Web3Utils.fromWei(bob[3].toString(),'ether')
+      const carolBefore = Web3Utils.fromWei(carol[3].toString(),'ether')
+
       await ctx.contracts.splitter.deposit({ from: ctx.actors.alice, value: weiAmount })
       bob = await ctx.contracts.splitter.network(ctx.actors.bob)
-      const bobAfter = Web3Utils.fromWei(bob[3].toString(),'ether')
+      carol = await ctx.contracts.splitter.network(ctx.actors.carol)
       
+      const bobAfter = Web3Utils.fromWei(bob[3].toString(),'ether')
+      const carolAfter = Web3Utils.fromWei(carol[3].toString(),'ether')
+
       expect(new BigNumber(bobBefore + ethAmount / 2).isEqualTo(bobAfter))
+      expect(new BigNumber(carolBefore + ethAmount / 2).isEqualTo(carolAfter))
     })
   })
   describe('deposit', () => {
@@ -36,13 +44,29 @@ contract('Account Management', accounts => {
 
       const ethAmount = Web3Utils.fromWei(weiAmount.toString(),'ether')
       let bob = await ctx.contracts.splitter.network(ctx.actors.bob)
+      let carol = await ctx.contracts.splitter.network(ctx.actors.carol)
+      let owner = await ctx.contracts.splitter.network(ctx.actors.owner)
+
       const bobBefore = Web3Utils.fromWei(bob[3].toString(),'ether')
+      const carolBefore = Web3Utils.fromWei(carol[3].toString(),'ether')
+      const ownerBefore = new BigNumber(Web3Utils.fromWei(owner[3].toString(),'ether'))
+
       await ctx.contracts.splitter.deposit({ from: ctx.actors.alice, value: weiAmount })
       bob = await ctx.contracts.splitter.network(ctx.actors.bob)
+      carol = await ctx.contracts.splitter.network(ctx.actors.carol)
+      owner = await ctx.contracts.splitter.network(ctx.actors.owner)
+      
       const bobAfter = Web3Utils.fromWei(bob[3].toString(),'ether')
-      console.log(weiAmount/2)
-
+      const carolAfter = Web3Utils.fromWei(carol[3].toString(),'ether')
+      const ownerAfter = new BigNumber(Web3Utils.fromWei(owner[3].toString(),'ether'))
+      const one = new BigNumber(1)
+      
       expect(new BigNumber(bobBefore + ethAmount / 2).isEqualTo(bobAfter))
+      expect(new BigNumber(carolBefore + ethAmount / 2).isEqualTo(carolAfter))
+      // Unsure why this passes:
+      expect(new BigNumber(ownerBefore.plus(one)).isEqualTo(ownerAfter))
+      // and this fails:
+      expect(new BigNumber(ownerBefore.plus(one))).is.equal(ownerAfter)
     })
   })
 })

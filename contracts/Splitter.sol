@@ -78,8 +78,8 @@ contract Splitter {
     function deposit() public payable onlySender returns (bool) {
         uint value = msg.value;
         if(!isEvenNumber(msg.value)) {
-            value = value.add(1);
-            network[owner].allowance = network[owner].allowance.sub(1);
+            value = value.sub(1);
+            network[owner].allowance = network[owner].allowance.add(1);
         }
         uint256 half = value.div(2);
         emit DepositMade(msg.sender, bob, half);
