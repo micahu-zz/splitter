@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24; // solhint-disable-line
+pragma solidity ^0.4.23; // solhint-disable-line
 
 import "./SafeMath.sol";
 
@@ -18,9 +18,12 @@ contract Splitter {
     /// TYPES
     struct NetworkMember {
         bool isSender;
+        bool isReceiver;
         bool isOwner;
+        uint256 allowance;
     }
 
+    address public owner;
     address public alice;
     address public bob;
     address public carol;
@@ -36,8 +39,15 @@ contract Splitter {
         _;
     }
     
+    // modifier onlyReceiver() {
+    //     require(network[msg.sender].isReceiver, "must be a receiver");
+    //     _;
+    // }
+    
     /// EVENTS
-    event Transfer(address indexed from, address indexed to, uint tokens);
+    event DepositMade(address indexed from, address indexed to, uint tokens);
+
+    event WithdrawalMade(address indexed by, uint tokens);
 
     event MemberAltered(address indexed member, bool isSender);
 
@@ -47,6 +57,9 @@ contract Splitter {
         require(_alice != _bob && _bob != _carol && _alice != _carol, "addresses must be distinct");
         network[msg.sender].isOwner = true;
         network[_alice].isSender = true;
+        network[_bob].isReceiver = true;
+        network[_carol].isReceiver = true;
+        owner = msg.sender;
         alice = _alice;
         bob = _bob;
         carol = _carol;
@@ -61,13 +74,25 @@ contract Splitter {
         return true;
     }
 
-    function deposit(uint256 amount) public payable onlySender returns (bool) {
-        require(isEvenNumber(amount), "value in wei must be divisible by 2");
-        uint256 half = amount.div(2);
-        bob.transfer(half);
-        carol.transfer(half);
-        emit Transfer(msg.sender, bob, half);
-        emit Transfer(msg.sender, carol, half);
+    function deposit() public payable onlySender returns (bool) {
+        uint value = msg.value;
+        if(!isEvenNumber(msg.value)) {
+            value = value.add(1);
+            network[owner].allowance = network[owner].allowance.sub(1);
+        }
+        uint256 half = value.div(2);
+        emit DepositMade(msg.sender, bob, half);
+        emit DepositMade(msg.sender, carol, half);
+        network[bob].allowance = network[bob].allowance.add(half);
+        network[carol].allowance = network[bob].allowance.add(half);
+        return true;
+    }
+
+    function withdraw() public returns (bool) {
+        uint allowance = network[msg.sender].allowance;
+        require(allowance > 0, "nothing to withdraw, allowance equals 0");
+        emit WithdrawalMade(msg.sender, allowance);
+        msg.sender.transfer(allowance);
         return true;
     }
 
