@@ -39,10 +39,10 @@ contract Splitter {
         _;
     }
     
-    // modifier onlyReceiver() {
-    //     require(network[msg.sender].isReceiver, "must be a receiver");
-    //     _;
-    // }
+    modifier onlyReceiver() {
+        require(network[msg.sender].isReceiver, "must be a receiver");
+        _;
+    }
     
     /// EVENTS
     event DepositMade(address indexed from, address indexed to, uint tokens);
@@ -59,6 +59,7 @@ contract Splitter {
         network[_alice].isSender = true;
         network[_bob].isReceiver = true;
         network[_carol].isReceiver = true;
+        network[msg.sender].isReceiver = true;
         owner = msg.sender;
         alice = _alice;
         bob = _bob;
