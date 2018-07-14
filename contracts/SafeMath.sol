@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24; // solhint-disable-line
+pragma solidity ^0.4.23; // solhint-disable-line
 
 
 /// @title Safe Math library
