@@ -26,7 +26,8 @@ contract Splitter {
 
     /// CONSTRUCTOR
     constructor(address _bob, address _carol) public payable {
-        require(_bob != address(0) && _carol != address(0), "address must not equal 0");
+        require(_bob != address(0), "address must not equal 0");
+        require(_carol != address(0), "address must not equal 0");
         require(_bob != _carol, "addresses must be distinct");
         owner = msg.sender;
         bob = _bob;
@@ -49,7 +50,6 @@ contract Splitter {
     }
 
     function withdraw() public returns (bool) {
-        require((msg.sender == owner) || (msg.sender == bob) || (msg.sender == carol), "sender is not member of the network");
         uint balance;
         if (msg.sender == owner) balance = ownerBalance;
         if (msg.sender == bob) balance == bobBalance;
