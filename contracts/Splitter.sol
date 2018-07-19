@@ -13,9 +13,9 @@ contract Splitter {
     address public owner;
     address public bob;
     address public carol;
-    uint public ownerBalance;
-    uint public bobBalance;
-    uint public carolBalance;
+
+    /// MAPPINGS
+    mapping(address=>uint) public balances;
     
     /// EVENTS
     event DepositMade(address indexed from, address indexed to, uint tokens);
@@ -39,22 +39,18 @@ contract Splitter {
         uint value = msg.value;
         if(!isEvenNumber(msg.value)) {
             value = value.sub(1);
-            ownerBalance = ownerBalance.add(1);
+            balances[owner] = balances[owner].add(1);
         }
         uint256 half = value.div(2);
         emit DepositMade(msg.sender, bob, half);
         emit DepositMade(msg.sender, carol, half);
-        bobBalance = bobBalance.add(half);
-        carolBalance = carolBalance.add(half);
+        balances[bob] = balances[bob].add(half);
+        balances[carol] = balances[carol].add(half);
         return true;
     }
 
     function withdraw() public returns (bool) {
-        uint balance;
-        if (msg.sender == owner) balance = ownerBalance;
-        if (msg.sender == bob) balance == bobBalance;
-        if (msg.sender == carol) balance == carolBalance;
-        uint allowance = balance;
+        uint allowance = balances[msg.sender];
         require(allowance > 0, "nothing to withdraw, allowance equals 0");
         emit WithdrawalMade(msg.sender, allowance);
         msg.sender.transfer(allowance);
