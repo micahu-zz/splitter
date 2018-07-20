@@ -9,48 +9,35 @@ import "./SafeMath.sol";
 contract Splitter {
     using SafeMath for uint256;
 
-    /// TYPES
-    address public owner;
-    address public bob;
-    address public carol;
-
     /// MAPPINGS
     mapping(address=>uint) public balances;
     
     /// EVENTS
-    event DepositMade(address indexed from, address indexed to, uint tokens);
+    event FundsSplit(address indexed from, address indexed to1, address indexed to2, uint tokens, uint remainder);
 
     event WithdrawalMade(address indexed by, uint tokens);
 
     event MemberAltered(address indexed member, bool isSender);
 
     /// CONSTRUCTOR
-    constructor(address _bob, address _carol) public payable {
-        require(_bob != address(0), "address must not equal 0");
-        require(_carol != address(0), "address must not equal 0");
-        require(_bob != _carol, "addresses must be distinct");
-        owner = msg.sender;
-        bob = _bob;
-        carol = _carol;
+    constructor() public {
+        require(msg.value == 0);
     }
 
     /// FUNCTIONS
-    function deposit() public payable returns (bool) {
+    function splitFunds(address recipient1, address recipient2) public payable returns (bool) {
         uint value = msg.value;
-        if(!isEvenNumber(msg.value)) {
-            value = value.sub(1);
-            balances[owner] = balances[owner].add(1);
-        }
         uint256 half = value.div(2);
-        emit DepositMade(msg.sender, bob, half);
-        emit DepositMade(msg.sender, carol, half);
-        balances[bob] = balances[bob].add(half);
-        balances[carol] = balances[carol].add(half);
+        uint256 remainder = value % 2;
+        emit FundsSplit(msg.sender, recipient1, recipient2, half, remainder);
+        balances[msg.sender] = msg.sender.balance.add(remainder);
+        balances[recipient1] = recipient1.balance.add(half);
+        balances[recipient2] = recipient2.balance.add(half);
         return true;
     }
 
     function withdraw() public returns (bool) {
-        uint allowance = balances[msg.sender];
+        uint allowance = msg.sender.balance;
         require(allowance > 0, "nothing to withdraw, allowance equals 0");
         emit WithdrawalMade(msg.sender, allowance);
         msg.sender.transfer(allowance);

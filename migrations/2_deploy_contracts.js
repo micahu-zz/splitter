@@ -8,5 +8,5 @@ module.exports = (deployer, network, accounts) => {
 
   deployer.deploy(SafeMath)
   deployer.link(SafeMath, Splitter)
-  deployer.deploy(Splitter, actors.bob, actors.carol, {from: owner})
+  deployer.deploy(Splitter, {from: owner})
 }
