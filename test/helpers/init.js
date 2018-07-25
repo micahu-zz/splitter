@@ -9,6 +9,6 @@ export function getTestActorsContext (accounts) {
 
 export async function getSplitterContract (actors) {
   const Splitter = artifacts.require('Splitter')
-  const c = await Splitter.new(actors.alice, actors.bob, actors.carol, { from: actors.owner })
+  const c = await Splitter.new({ from: actors.owner })
   return c
 }
