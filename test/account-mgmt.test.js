@@ -4,59 +4,59 @@ import Web3Utils from 'web3-utils'
 const init = require('./helpers/init')
 
 contract('Account Management', accounts => {
-  const alice = accounts[1]
-  const bob = accounts[2]
-  const carol = accounts[3]
+  const sender = accounts[1]
+  const recipient1 = accounts[2]
+  const recipient2 = accounts[3]
   let splitter;
 
   beforeEach(async () => {
-    splitter = await init.getSplitterContract({ owner: accounts[0] })
+    splitter = await init.getSplitterContract(accounts[0])
   })
 
   describe('splitFunds', () => {
     it('can split and deposit an even number', async () => {
       const weiAmount = 1000000000000000000 // 1 eth
-
       const ethAmount = Web3Utils.fromWei(weiAmount.toString(), 'ether')
-      let bobBalance = await splitter.balances(bob)
-      let carolBalance = await splitter.balances(carol)
+      let rec1Balance = await splitter.balances(recipient1)
+      let rec2Balance = await splitter.balances(recipient2)
 
-      const bobBefore = Web3Utils.fromWei(bobBalance.toString(), 'ether')
-      const carolBefore = Web3Utils.fromWei(carolBalance.toString(), 'ether')
+      const rec1Before = Web3Utils.fromWei(rec1Balance.toString(), 'ether')
+      const rec2Before = Web3Utils.fromWei(rec2Balance.toString(), 'ether')
 
-      await splitter.splitFunds(bob, carol, { from: alice, value: weiAmount })
-      bob = await splitter.balances(bob)
-      carol = await splitter.balances(carol)
+      await splitter.splitFunds(recipient1, recipient2, { from: sender, value: weiAmount })
+      rec1Balance = await splitter.balances(recipient1)
+      rec2Balance = await splitter.balances(recipient2)
 
-      const bobAfter = Web3Utils.fromWei(bob.toString(), 'ether')
-      const carolAfter = Web3Utils.fromWei(carol.toString(), 'ether')
+      const rec1After = Web3Utils.fromWei(rec1Balance.toString(), 'ether')
+      const rec2After = Web3Utils.fromWei(rec2Balance.toString(), 'ether')
 
-      expect(new BigNumber(bobBefore + ethAmount / 2).isEqualTo(bobAfter))
-      expect(new BigNumber(carolBefore + ethAmount / 2).isEqualTo(carolAfter))
+      expect(new BigNumber(rec1Before + ethAmount / 2).isEqualTo(rec1After))
+      expect(new BigNumber(rec2Before + ethAmount / 2).isEqualTo(rec2After))
     })
     it('can split and deposit an odd number', async () => {
       const weiAmount = 1000000000000000001 // 1 eth + 1 wei
 
       const ethAmount = Web3Utils.fromWei(weiAmount.toString(), 'ether')
-      let alice = await splitter.balances(alice)
-      let bob = await splitter.balances(bob)
-      let carol = await splitter.balances(carol)
+      let senderBalance = await splitter.balances(sender)
+      let rec1Balance = await splitter.balances(recipient1)
+      let rec2Balance = await splitter.balances(recipient2)
 
-      const bobBefore = Web3Utils.fromWei(bob.toString(), 'ether')
-      const carolBefore = Web3Utils.fromWei(carol.toString(), 'ether')
-      const aliceBefore = new BigNumber(Web3Utils.fromWei(alice.toString(), 'ether'))
+      const senderBefore = new BigNumber(senderBalance)
+      const rec1Before = Web3Utils.fromWei(rec1Balance.toString(), 'ether')
+      const rec2Before = Web3Utils.fromWei(rec2Balance.toString(), 'ether')
 
-      await splitter.splitFunds(bob, carol, { from: alice, value: weiAmount })
-      bob = await splitter.balances(bob)
-      carol = await splitter.balances(carol)
-      
-      const bobAfter = Web3Utils.fromWei(bob.toString(), 'ether')
-      const carolAfter = Web3Utils.fromWei(carol.toString(), 'ether')
-      const aliceAfter = new BigNumber(Web3Utils.fromWei(alice.toString(), 'ether'))
+      await splitter.splitFunds(recipient1, recipient2, { from: sender, value: weiAmount })
+      senderBalance = await splitter.balances(sender)
+      rec1Balance = await splitter.balances(recipient1)
+      rec2Balance = await splitter.balances(recipient2)
 
-      expect(new BigNumber(bobBefore + ethAmount / 2).isEqualTo(bobAfter))
-      expect(new BigNumber(carolBefore + ethAmount / 2).isEqualTo(carolAfter))
-      expect(new BigNumber(aliceBefore.plus(1))).is.equal(aliceAfter)
+      const senderAfter = new BigNumber(senderBalance)
+      const rec1After = Web3Utils.fromWei(rec1Balance.toString(), 'ether')
+      const rec2After = Web3Utils.fromWei(rec2Balance.toString(), 'ether')
+
+      expect(new BigNumber(rec1Before + ethAmount / 2).isEqualTo(rec1After))
+      expect(new BigNumber(rec2Before + ethAmount / 2).isEqualTo(rec2After))
+      assert.strictEqual(new BigNumber(senderBefore.plus(1)).toString(10), senderAfter.toString(10))
     })
   })
 })
