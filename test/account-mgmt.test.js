@@ -4,16 +4,13 @@ import Web3Utils from 'web3-utils'
 const init = require('./helpers/init')
 
 contract('Account Management', accounts => {
-  const ctx = {
-    actors: init.getTestActorsContext(accounts),
-    contracts: {
-      splitter: null,
-      safeMath: null
-    }
-  }
+  const alice = accounts[1]
+  const bob = accounts[2]
+  const carol = accounts[3]
+  let splitter;
 
   beforeEach(async () => {
-    ctx.contracts.splitter = await init.getSplitterContract(ctx.actors)
+    splitter = await init.getSplitterContract({ owner: accounts[0] })
   })
 
   describe('splitFunds', () => {
@@ -21,15 +18,15 @@ contract('Account Management', accounts => {
       const weiAmount = 1000000000000000000 // 1 eth
 
       const ethAmount = Web3Utils.fromWei(weiAmount.toString(), 'ether')
-      let bob = await ctx.contracts.splitter.balances(ctx.actors.bob)
-      let carol = await ctx.contracts.splitter.balances(ctx.actors.carol)
+      let bobBalance = await splitter.balances(bob)
+      let carolBalance = await splitter.balances(carol)
 
-      const bobBefore = Web3Utils.fromWei(bob.toString(), 'ether')
-      const carolBefore = Web3Utils.fromWei(carol.toString(), 'ether')
+      const bobBefore = Web3Utils.fromWei(bobBalance.toString(), 'ether')
+      const carolBefore = Web3Utils.fromWei(carolBalance.toString(), 'ether')
 
-      await ctx.contracts.splitter.splitFunds(ctx.actors.bob, ctx.actors.carol, { from: ctx.actors.alice, value: weiAmount })
-      bob = await ctx.contracts.splitter.balances(ctx.actors.bob)
-      carol = await ctx.contracts.splitter.balances(ctx.actors.carol)
+      await splitter.splitFunds(bob, carol, { from: alice, value: weiAmount })
+      bob = await splitter.balances(bob)
+      carol = await splitter.balances(carol)
 
       const bobAfter = Web3Utils.fromWei(bob.toString(), 'ether')
       const carolAfter = Web3Utils.fromWei(carol.toString(), 'ether')
@@ -41,26 +38,25 @@ contract('Account Management', accounts => {
       const weiAmount = 1000000000000000001 // 1 eth + 1 wei
 
       const ethAmount = Web3Utils.fromWei(weiAmount.toString(), 'ether')
-      let bob = await ctx.contracts.splitter.balances(ctx.actors.bob)
-      let carol = await ctx.contracts.splitter.balances(ctx.actors.carol)
-      let owner = await ctx.contracts.splitter.balances(ctx.actors.owner)
+      let alice = await splitter.balances(alice)
+      let bob = await splitter.balances(bob)
+      let carol = await splitter.balances(carol)
 
       const bobBefore = Web3Utils.fromWei(bob.toString(), 'ether')
       const carolBefore = Web3Utils.fromWei(carol.toString(), 'ether')
-      const ownerBefore = new BigNumber(Web3Utils.fromWei(owner.toString(), 'ether'))
+      const aliceBefore = new BigNumber(Web3Utils.fromWei(alice.toString(), 'ether'))
 
-      await ctx.contracts.splitter.splitFunds(ctx.actors.bob, ctx.actors.carol, { from: ctx.actors.alice, value: weiAmount })
-      bob = await ctx.contracts.splitter.balances(ctx.actors.bob)
-      carol = await ctx.contracts.splitter.balances(ctx.actors.carol)
-      owner = await ctx.contracts.splitter.balances(ctx.actors.owner)
-
+      await splitter.splitFunds(bob, carol, { from: alice, value: weiAmount })
+      bob = await splitter.balances(bob)
+      carol = await splitter.balances(carol)
+      
       const bobAfter = Web3Utils.fromWei(bob.toString(), 'ether')
       const carolAfter = Web3Utils.fromWei(carol.toString(), 'ether')
-      const ownerAfter = new BigNumber(Web3Utils.fromWei(owner.toString(), 'ether'))
+      const aliceAfter = new BigNumber(Web3Utils.fromWei(alice.toString(), 'ether'))
 
       expect(new BigNumber(bobBefore + ethAmount / 2).isEqualTo(bobAfter))
       expect(new BigNumber(carolBefore + ethAmount / 2).isEqualTo(carolAfter))
-      expect(new BigNumber(ownerBefore.plus(1))).is.equal(ownerAfter)
+      expect(new BigNumber(aliceBefore.plus(1))).is.equal(aliceAfter)
     })
   })
 })
