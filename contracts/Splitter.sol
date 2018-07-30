@@ -11,17 +11,17 @@ contract Splitter {
 
     mapping(address=>uint) public balances;
 
-    event FundsSplit(address indexed from, address indexed to1, address indexed to2, uint tokensSent, uint half, uint remainder);
+    event FundsSplit(address indexed from, address indexed to1, address indexed to2, uint value, uint half, uint remainder);
 
     event WithdrawalMade(address indexed by, uint tokens);
 
-    constructor() public { }
-
     function splitFunds(address recipient1, address recipient2) public payable returns (bool) {
+        require(recipient1 != address(0), "missing 1st recipient's address");
+        require(recipient2 != address(0), "missing 2nd recipient's address");
+        require(msg.value > 0, "msg.value equals 0");
         uint value = msg.value;
-        uint256 half = value.div(2);
-        uint256 remainder = 0;
-        if (isEvenNumber(value)) {remainder = 1;}
+        uint256 half = value.div(2); // discards any remainder
+        uint256 remainder = value.sub(half.mul(2));
         emit FundsSplit(msg.sender, recipient1, recipient2, value, half, remainder);
         if (remainder > 0) {balances[msg.sender] = balances[msg.sender].add(remainder);}
         balances[recipient1] = balances[recipient1].add(half);
@@ -35,11 +35,5 @@ contract Splitter {
         emit WithdrawalMade(msg.sender, allowance);
         msg.sender.transfer(allowance);
         return true;
-    }
-
-    function isEvenNumber(uint256 value) private pure returns (bool) {
-        uint256 half = value.div(2); // discards any remainder
-        if (value == half.mul(2)) return true;
-        return false;
     }
 }
