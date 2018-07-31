@@ -19,10 +19,9 @@ contract Splitter {
         require(recipient1 != address(0), "missing 1st recipient's address");
         require(recipient2 != address(0), "missing 2nd recipient's address");
         require(msg.value > 0, "msg.value equals 0");
-        uint value = msg.value;
-        uint256 half = value.div(2); // discards any remainder
-        uint256 remainder = value.sub(half.mul(2));
-        emit FundsSplit(msg.sender, recipient1, recipient2, value, half, remainder);
+        uint256 half = msg.value.div(2); // discards any remainder
+        uint256 remainder = msg.value.sub(half.mul(2));
+        emit FundsSplit(msg.sender, recipient1, recipient2, msg.value, half, remainder);
         if (remainder > 0) {balances[msg.sender] = balances[msg.sender].add(remainder);}
         balances[recipient1] = balances[recipient1].add(half);
         balances[recipient2] = balances[recipient2].add(half);
